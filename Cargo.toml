@@ -1,9 +1,28 @@
 [package]
 name = "mail-message"
-version = "0.0.0"
+version = "0.1.0"
+authors = ["Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
+homepage = "https://github.com/d-e-s-o/mail-message"
+repository = "https://github.com/d-e-s-o/mail-message.git"
 readme = "README.md"
+categories = [
+  "asynchronous",
+  "command-line-utilities",
+  "email",
+]
+keywords = [
+  "async",
+  "cli",
+  "email",
+  "smtp",
+  "text",
+]
+description = """
+A program for easy, quick, and fault tolerant sending of emails from the
+command line.
+"""
 default-run = "mail-message"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
