@@ -49,7 +49,7 @@ anyhow = { version = "1.0.80", default-features = false, features = ["std"] }
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-native-tls"] }
 serde = { version = "1.0", default-features = false, features = ["derive", "std"], optional = true }
 serde_json = { version = "1.0", default-features = false, features = ["std"], optional = true }
-sequoia-cert-store = { version = "0.5", default-features = false, optional = true }
+sequoia-cert-store = { version = "0.6", default-features = false, optional = true }
 sequoia-openpgp = { version = "1.18", default-features = false, features = ["crypto-nettle"], optional = true }
 tokio = { version = "1.0", default-features = false, features = ["fs"], optional = true }
 
