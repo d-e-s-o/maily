@@ -113,7 +113,7 @@ where
         print!("{}", err);
         return Ok(())
       },
-      _ => return Err(err).context("failed to parse program arguments"),
+      _ => return Err(err.into()),
     },
   };
 
