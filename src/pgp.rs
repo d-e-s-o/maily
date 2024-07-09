@@ -122,7 +122,7 @@ where
 
       if expired_keys.last().is_some() {
         return Err(anyhow!(
-          "the last suitable encryption key of cert {cert} expired"
+          "the last suitable encryption key of cert `{cert}` expired"
         ));
       } else {
         return Err(anyhow!(
