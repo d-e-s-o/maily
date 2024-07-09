@@ -68,6 +68,33 @@ use crate::rand::RandExt as _;
 use crate::rand::Rng;
 
 
+#[cfg(feature = "tracing")]
+#[macro_use]
+#[allow(unused_imports)]
+mod log {
+  pub(crate) use tracing::debug;
+  pub(crate) use tracing::error;
+  pub(crate) use tracing::info;
+  pub(crate) use tracing::instrument;
+  pub(crate) use tracing::trace;
+  pub(crate) use tracing::warn;
+}
+
+#[cfg(not(feature = "tracing"))]
+#[macro_use]
+#[allow(unused_imports)]
+mod log {
+  macro_rules! debug {
+    ($($args:tt)*) => {};
+  }
+  pub(crate) use debug;
+  pub(crate) use debug as error;
+  pub(crate) use debug as info;
+  pub(crate) use debug as trace;
+  pub(crate) use debug as warn;
+}
+
+
 /// A type capturing options for capturing a screenshot.
 #[derive(Clone, Debug, Default)]
 pub struct EmailOpts<'input> {
@@ -97,6 +124,7 @@ where
 }
 
 
+#[cfg_attr(feature = "tracing", log::instrument(skip_all, err, fields(subject = subject, from = %account.from)))]
 async fn try_send_email<R, S>(
   account: &Account<'_>,
   subject: &str,
@@ -213,10 +241,14 @@ where
       .context("failed to create email message")?
   };
 
+  log::trace!(email = %String::from_utf8_lossy(&email.formatted()));
+
   let _mailer = mailer
     .send(email)
     .await
     .with_context(|| format!("failed to send email via {}", account.smtp_host))?;
+
+  log::debug!("email sent successfully");
   Ok(())
 }
 

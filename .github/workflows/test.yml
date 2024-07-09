@@ -44,7 +44,10 @@ jobs:
             args: "--package=maily --features=pgp"
           - rust: stable
             profile: dev
-            args: "--package=maily --features=config,pgp"
+            args: "--package=maily --features=tracing"
+          - rust: stable
+            profile: dev
+            args: "--package=maily --features=config,pgp,tracing"
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@master

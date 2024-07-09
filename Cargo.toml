@@ -36,6 +36,9 @@ default = []
 config = ["dep:serde", "dep:serde_json", "dep:tokio"]
 # Enable this feature to enable support for PGP encryption.
 pgp = ["dep:sequoia-cert-store", "dep:sequoia-openpgp"]
+# Emit `tracing` traces and configure spans. User code is responsible for
+# subscribing.
+tracing = ["dep:tracing"]
 
 [profile.release]
 opt-level = "z"
@@ -52,6 +55,7 @@ serde_json = { version = "1.0", default-features = false, features = ["std"], op
 sequoia-cert-store = { version = "0.6", default-features = false, optional = true }
 sequoia-openpgp = { version = "1.18", default-features = false, features = ["crypto-nettle"], optional = true }
 tokio = { version = "1.0", default-features = false, features = ["fs"], optional = true }
+tracing = {version = "0.1.27", default-features = false, features = ["attributes"], optional = true}
 
 # https://docs.rs/about/metadata
 [package.metadata.docs.rs]
