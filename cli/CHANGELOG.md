@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.2.1
+-----
 - Initialize `tracing` infrastructure
   - Added `-v`/`--verbose` flag to control verbosity
 
