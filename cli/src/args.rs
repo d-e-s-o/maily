@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+use clap::ArgAction;
 use clap::Parser;
 
 
@@ -26,4 +27,7 @@ pub(crate) struct Args {
   /// The path to the configuration file.
   #[clap(short, long)]
   pub config: Option<PathBuf>,
+  /// Increase verbosity (can be supplied multiple times).
+  #[clap(short = 'v', long = "verbose", global = true, action = ArgAction::Count, default_value = None)]
+  pub verbosity: u8,
 }

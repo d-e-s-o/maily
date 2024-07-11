@@ -14,6 +14,7 @@ mod util;
 
 use std::borrow::Cow;
 use std::env::args_os;
+use std::env::var_os;
 use std::ffi::OsString;
 use std::io;
 use std::io::IsTerminal as _;
@@ -33,6 +34,12 @@ use tokio::fs::read;
 use tokio::io::stdin;
 use tokio::io::AsyncReadExt as _;
 
+use tracing::subscriber::set_global_default as set_global_subscriber;
+use tracing_subscriber::filter::EnvFilter;
+use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::fmt::time::ChronoLocal;
+use tracing_subscriber::FmtSubscriber;
+
 use crate::args::Args;
 use crate::config::Config;
 use crate::config::Filter;
@@ -45,6 +52,7 @@ async fn run_impl(args: Args) -> Result<()> {
     subject,
     content_type,
     config,
+    verbosity: _,
   } = args;
 
   let path = if let Some(config) = config {
@@ -99,6 +107,33 @@ async fn run_impl(args: Args) -> Result<()> {
   .await
 }
 
+fn setup_tracing(verbosity: u8) -> Result<()> {
+  let builder =
+    FmtSubscriber::builder().with_timer(ChronoLocal::new("%Y-%m-%dT%H:%M:%S%.3f%:z".to_string()));
+
+  if verbosity != 0 {
+    let level = match verbosity {
+      0 => LevelFilter::WARN,
+      1 => LevelFilter::INFO,
+      2 => LevelFilter::DEBUG,
+      _ => LevelFilter::TRACE,
+    };
+    let subscriber = builder.with_max_level(level).finish();
+    let () =
+      set_global_subscriber(subscriber).with_context(|| "failed to set tracing subscriber")?;
+  } else {
+    let directive = var_os(EnvFilter::DEFAULT_ENV).unwrap_or_default();
+    let directive = directive
+      .to_str()
+      .with_context(|| format!("env var `{}` is not valid UTF-8", EnvFilter::DEFAULT_ENV))?;
+
+    let subscriber = builder.with_env_filter(EnvFilter::new(directive)).finish();
+    let () =
+      set_global_subscriber(subscriber).with_context(|| "failed to set tracing subscriber")?;
+  }
+  Ok(())
+}
+
 
 /// Run the program and report errors, if any.
 async fn run<A, T>(args: A) -> Result<()>
@@ -116,6 +151,8 @@ where
       _ => return Err(err.into()),
     },
   };
+
+  let () = setup_tracing(args.verbosity)?;
 
   run_impl(args).await
 }

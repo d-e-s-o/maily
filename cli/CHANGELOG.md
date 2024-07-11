@@ -1,3 +1,9 @@
+Unreleased
+----------
+- Initialize `tracing` infrastructure
+  - Added `-v`/`--verbose` flag to control verbosity
+
+
 0.2.0
 -----
 - Added support for PGP encrypting emails
