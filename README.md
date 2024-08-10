@@ -4,5 +4,7 @@
 mail-message
 ============
 
+- [Changelog](CHANGELOG.md)
+
 A program for easy, quick, and fault tolerant sending of emails from the
 command line.

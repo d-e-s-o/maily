@@ -18,6 +18,9 @@ pub(crate) struct Config {
   pub recipients: Vec<String>,
   /// The filters to use when sending an email.
   pub filters: Vec<Filter>,
+  /// The transfer encoding used for the message.
+  #[serde(alias = "transfer-encoding")]
+  pub transfer_encoding: Option<String>,
 }
 
 

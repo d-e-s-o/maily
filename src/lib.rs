@@ -15,6 +15,7 @@ mod util;
 
 use std::ffi::OsString;
 use std::path::PathBuf;
+use std::str::FromStr as _;
 
 use anyhow::anyhow;
 use anyhow::ensure;
@@ -26,6 +27,7 @@ use clap::Parser as _;
 
 use dirs::config_dir;
 
+use lettre::message::header::ContentTransferEncoding;
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::AsyncSmtpTransport;
@@ -63,16 +65,30 @@ async fn send_email(
   account: &Account,
   subject: &str,
   message: &[u8],
+  transfer_encoding: Option<&str>,
   recipients: &[String],
 ) -> Result<()> {
   let from = account
     .from
     .parse()
     .with_context(|| format!("failed to parse 'From' specification: `{}`", account.from))?;
-  let mut email = Message::builder()
+  let email = Message::builder()
     .from(from)
     .subject(subject)
     .header(ContentType::TEXT_PLAIN);
+
+  // We only set the transfer encoding if the user provided one. The
+  // reason being that:
+  // > The `Message` builder takes care of choosing the most
+  // > efficient encoding based on the chosen body, so in most
+  // > use-caches this header shouldn't be set manually.
+  let mut email = if let Some(transfer_encoding) = transfer_encoding {
+    let transfer_encoding = ContentTransferEncoding::from_str(transfer_encoding)
+      .map_err(|_| anyhow!("failed to parse transfer encoding `{transfer_encoding}`"))?;
+    email.header(transfer_encoding)
+  } else {
+    email
+  };
 
   for recipient in recipients {
     let to = recipient
@@ -137,6 +153,7 @@ async fn run_impl(args: Args) -> Result<()> {
     mut accounts,
     recipients,
     filters,
+    transfer_encoding,
   } = config;
 
   ensure!(
@@ -172,6 +189,7 @@ async fn run_impl(args: Args) -> Result<()> {
         &account,
         "intermittent email error",
         format!("{err:?}").as_bytes(),
+        transfer_encoding.as_deref(),
         &recipients,
       )
       .await;
@@ -182,6 +200,7 @@ async fn run_impl(args: Args) -> Result<()> {
       &account,
       subject.as_deref().unwrap_or(""),
       &message,
+      transfer_encoding.as_deref(),
       &recipients,
     )
     .await;
