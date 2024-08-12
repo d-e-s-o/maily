@@ -98,12 +98,8 @@ async fn send_email(
     email = email.to(to);
   }
 
-  // Emails typically use \r\n as line ending. Some providers refuse
-  // incoming messages not adhering to it and some don't do the
-  // conversion for outgoing mails. It's best to do it ourselves.
-  let message = String::from_utf8_lossy(message).replace('\n', "\r\n");
   let email = email
-    .body(message)
+    .body(message.to_vec())
     .context("failed to create email message")?;
 
   let creds = Credentials::new(account.user.to_string(), account.password.to_string());
