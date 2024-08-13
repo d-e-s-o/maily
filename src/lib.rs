@@ -181,15 +181,16 @@ async fn run_impl(args: Args) -> Result<()> {
   let mut overall_result = Result::<_, Error>::Ok(());
   for account in accounts {
     if let Err(err) = &overall_result {
+      // There isn't really anything that we could do about potential
+      // errors here, so just ignore them.
       let _result = send_email(
         &account,
-        "intermittent email error",
+        "email error",
         format!("{err:?}").as_bytes(),
         transfer_encoding.as_deref(),
         &recipients,
       )
       .await;
-      // There isn't really anything that we can do about this error.
     }
 
     let result = send_email(
