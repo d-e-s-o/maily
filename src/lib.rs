@@ -60,14 +60,17 @@ fn config_path() -> Result<PathBuf> {
   Ok(path)
 }
 
-
-async fn send_email(
+async fn try_send_email<R, S>(
   account: &Account,
   subject: &str,
   message: &[u8],
+  recipients: R,
   transfer_encoding: Option<&str>,
-  recipients: &[String],
-) -> Result<()> {
+) -> Result<()>
+where
+  R: Iterator<Item = S> + Clone,
+  S: AsRef<str>,
+{
   let from = account
     .from
     .parse()
@@ -91,6 +94,7 @@ async fn send_email(
   };
 
   for recipient in recipients {
+    let recipient = recipient.as_ref();
     let to = recipient
       .parse()
       .with_context(|| format!("failed to parse 'To' specification: `{recipient}`"))?;
@@ -127,6 +131,62 @@ async fn send_email(
   Ok(())
 }
 
+async fn send_email<'acc, A, R, I, S>(
+  accounts: A,
+  subject: &str,
+  message: &[u8],
+  recipients: R,
+  transfer_encoding: Option<&str>,
+) -> Result<()>
+where
+  A: IntoIterator<Item = &'acc Account>,
+  R: IntoIterator<IntoIter = I>,
+  I: Iterator<Item = S> + Clone,
+  S: AsRef<str>,
+{
+  let mut accounts = accounts.into_iter().collect::<Vec<&Account>>();
+  let rng = Rng::new();
+  let () = rng.shuffle(&mut accounts);
+
+  let recipients = recipients.into_iter();
+
+  let mut overall_result = Result::<_, Error>::Ok(());
+  for account in accounts {
+    if let Err(err) = &overall_result {
+      // There isn't really anything that we could do about potential
+      // errors here, so just ignore them.
+      let _result = try_send_email(
+        account,
+        "email error",
+        format!("{err:?}").as_bytes(),
+        recipients.clone(),
+        transfer_encoding,
+      )
+      .await;
+    }
+
+    let result = try_send_email(
+      account,
+      subject,
+      message,
+      recipients.clone(),
+      transfer_encoding,
+    )
+    .await;
+    match result {
+      Ok(()) => return Ok(()),
+      Err(err) => {
+        if let Err(overall_err) = overall_result {
+          overall_result = Err(overall_err.context(err));
+        } else {
+          overall_result = Err(err);
+        }
+      },
+    }
+  }
+
+  overall_result
+}
 
 async fn run_impl(args: Args) -> Result<()> {
   let Args {
@@ -146,7 +206,7 @@ async fn run_impl(args: Args) -> Result<()> {
   let config = from_json::<Config>(&data)
     .with_context(|| format!("failed to parse `{}` contents as JSON", path.display()))?;
   let Config {
-    mut accounts,
+    accounts,
     recipients,
     filters,
     transfer_encoding,
@@ -174,46 +234,16 @@ async fn run_impl(args: Args) -> Result<()> {
   let message = pipeline(&message, filters.into_iter().map(Filter::into))
     .await
     .context("failed to apply filters to message")?;
+  let subject = subject.as_deref().unwrap_or("");
 
-  let rng = Rng::new();
-  let () = rng.shuffle(&mut accounts);
-
-  let mut overall_result = Result::<_, Error>::Ok(());
-  for account in accounts {
-    if let Err(err) = &overall_result {
-      // There isn't really anything that we could do about potential
-      // errors here, so just ignore them.
-      let _result = send_email(
-        &account,
-        "email error",
-        format!("{err:?}").as_bytes(),
-        transfer_encoding.as_deref(),
-        &recipients,
-      )
-      .await;
-    }
-
-    let result = send_email(
-      &account,
-      subject.as_deref().unwrap_or(""),
-      &message,
-      transfer_encoding.as_deref(),
-      &recipients,
-    )
-    .await;
-    match result {
-      Ok(()) => return Ok(()),
-      Err(err) => {
-        if let Err(overall_err) = overall_result {
-          overall_result = Err(overall_err.context(err));
-        } else {
-          overall_result = Err(err);
-        }
-      },
-    }
-  }
-
-  overall_result
+  send_email(
+    accounts.iter(),
+    subject,
+    &message,
+    recipients.iter(),
+    transfer_encoding.as_deref(),
+  )
+  .await
 }
 
 
