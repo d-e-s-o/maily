@@ -8,24 +8,15 @@
   clippy::let_unit_value
 )]
 
-mod args;
 mod config;
 mod rand;
-mod util;
 
-use std::ffi::OsString;
-use std::path::PathBuf;
 use std::str::FromStr as _;
 
 use anyhow::anyhow;
-use anyhow::ensure;
 use anyhow::Context as _;
 use anyhow::Error;
 use anyhow::Result;
-
-use clap::Parser as _;
-
-use dirs::config_dir;
 
 use lettre::message::header::ContentTransferEncoding;
 use lettre::message::header::ContentType;
@@ -35,33 +26,15 @@ use lettre::AsyncTransport;
 use lettre::Message;
 use lettre::Tokio1Executor;
 
-use serde_json::from_slice as from_json;
+pub use crate::config::Account;
+pub use crate::config::SmtpMode;
 
-use tokio::fs::read;
-use tokio::io::stdin;
-use tokio::io::AsyncReadExt as _;
-
-use crate::args::Args;
-use crate::config::Account;
-use crate::config::Config;
-use crate::config::Filter;
-use crate::config::SmtpMode;
 use crate::rand::RandExt as _;
 use crate::rand::Rng;
-use crate::util::pipeline;
 
-
-/// Retrieve the path to the program's configuration.
-fn config_path() -> Result<PathBuf> {
-  let path = config_dir()
-    .ok_or_else(|| anyhow!("unable to determine config directory"))?
-    .join("mail-message")
-    .join("config.json");
-  Ok(path)
-}
 
 async fn try_send_email<R, S>(
-  account: &Account,
+  account: &Account<'_>,
   subject: &str,
   message: &[u8],
   recipients: R,
@@ -110,15 +83,15 @@ where
 
   let mailer = match account.smtp_mode {
     SmtpMode::Unencrypted => {
-      AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&account.smtp_host)
+      AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(account.smtp_host)
         .credentials(creds)
         .build()
     },
-    SmtpMode::Tls => AsyncSmtpTransport::<Tokio1Executor>::relay(&account.smtp_host)
+    SmtpMode::Tls => AsyncSmtpTransport::<Tokio1Executor>::relay(account.smtp_host)
       .context("failed to create TLS SMTP mailer")?
       .credentials(creds)
       .build(),
-    SmtpMode::StartTls => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&account.smtp_host)
+    SmtpMode::StartTls => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(account.smtp_host)
       .context("failed to create STARTTLS SMTP mailer")?
       .credentials(creds)
       .build(),
@@ -131,7 +104,7 @@ where
   Ok(())
 }
 
-async fn send_email<'acc, A, R, I, S>(
+pub async fn send_email<'acc, A, R, I, S>(
   accounts: A,
   subject: &str,
   message: &[u8],
@@ -139,12 +112,12 @@ async fn send_email<'acc, A, R, I, S>(
   transfer_encoding: Option<&str>,
 ) -> Result<()>
 where
-  A: IntoIterator<Item = &'acc Account>,
+  A: IntoIterator<Item = &'acc Account<'acc>>,
   R: IntoIterator<IntoIter = I>,
   I: Iterator<Item = S> + Clone,
   S: AsRef<str>,
 {
-  let mut accounts = accounts.into_iter().collect::<Vec<&Account>>();
+  let mut accounts = accounts.into_iter().collect::<Vec<&Account<'_>>>();
   let rng = Rng::new();
   let () = rng.shuffle(&mut accounts);
 
@@ -186,83 +159,4 @@ where
   }
 
   overall_result
-}
-
-async fn run_impl(args: Args) -> Result<()> {
-  let Args {
-    message,
-    subject,
-    config,
-  } = args;
-
-  let path = if let Some(config) = config {
-    config
-  } else {
-    config_path()?
-  };
-  let data = read(&path)
-    .await
-    .with_context(|| format!("failed to read configuration file `{}`", path.display()))?;
-  let config = from_json::<Config>(&data)
-    .with_context(|| format!("failed to parse `{}` contents as JSON", path.display()))?;
-  let Config {
-    accounts,
-    recipients,
-    filters,
-    transfer_encoding,
-  } = config;
-
-  ensure!(
-    !accounts.is_empty(),
-    "no email accounts configured in `{}`",
-    path.display()
-  );
-
-  let message = if let Some(message) = message {
-    message.into_bytes()
-  } else {
-    println!("Please enter message (terminate with Ctrl-D):");
-
-    let mut data = Vec::new();
-    let _count = stdin()
-      .read_to_end(&mut data)
-      .await
-      .context("failed to read message from stdin")?;
-    data
-  };
-
-  let message = pipeline(&message, filters.into_iter().map(Filter::into))
-    .await
-    .context("failed to apply filters to message")?;
-  let subject = subject.as_deref().unwrap_or("");
-
-  send_email(
-    accounts.iter(),
-    subject,
-    &message,
-    recipients.iter(),
-    transfer_encoding.as_deref(),
-  )
-  .await
-}
-
-
-/// Run the program and report errors, if any.
-pub async fn run<A, T>(args: A) -> Result<()>
-where
-  A: IntoIterator<Item = T>,
-  T: Into<OsString> + Clone,
-{
-  let args = match Args::try_parse_from(args) {
-    Ok(args) => args,
-    Err(err) => match err.kind() {
-      clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
-        print!("{}", err);
-        return Ok(())
-      },
-      _ => return Err(err).context("failed to parse program arguments"),
-    },
-  };
-
-  run_impl(args).await
 }

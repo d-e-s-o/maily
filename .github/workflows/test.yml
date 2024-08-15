@@ -35,12 +35,12 @@ jobs:
         toolchain: ${{ matrix.rust }}
     - name: Build & test ${{ matrix.profile }}
       run: |
-        cargo build --profile=${{ matrix.profile }} --all-targets
-        cargo test --profile=${{ matrix.profile }}
+        cargo build --workspace --profile=${{ matrix.profile }} --all-targets
+        cargo test --workspace --profile=${{ matrix.profile }}
   clippy:
     name: Lint with clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo clippy --no-deps --all-targets --all-features --tests -- -A unknown_lints -A deprecated -D warnings
+      - run: cargo clippy --no-deps --workspace --all-targets --all-features --tests -- -A unknown_lints -A deprecated -D warnings
