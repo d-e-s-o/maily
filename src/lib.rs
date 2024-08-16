@@ -33,12 +33,27 @@ use crate::rand::RandExt as _;
 use crate::rand::Rng;
 
 
+/// A type capturing options for capturing a screenshot.
+#[derive(Clone, Debug, Default)]
+pub struct EmailOpts<'input> {
+  /// The transfer encoding to use.
+  ///
+  /// This setting is mostly provided as an escape hatch of sorts. If
+  /// not provided, the library detects a suitable transfer encoding
+  /// itself.
+  pub transfer_encoding: Option<&'input str>,
+  /// The type is non-exhaustive and open to extension.
+  #[doc(hidden)]
+  pub _non_exhaustive: (),
+}
+
+
 async fn try_send_email<R, S>(
   account: &Account<'_>,
   subject: &str,
   message: &[u8],
   recipients: R,
-  transfer_encoding: Option<&str>,
+  opts: &EmailOpts<'_>,
 ) -> Result<()>
 where
   R: Iterator<Item = S> + Clone,
@@ -52,6 +67,11 @@ where
     .from(from)
     .subject(subject)
     .header(ContentType::TEXT_PLAIN);
+
+  let EmailOpts {
+    transfer_encoding,
+    _non_exhaustive: (),
+  } = opts;
 
   // We only set the transfer encoding if the user provided one. The
   // reason being that:
@@ -109,7 +129,7 @@ pub async fn send_email<'acc, A, R, I, S>(
   subject: &str,
   message: &[u8],
   recipients: R,
-  transfer_encoding: Option<&str>,
+  opts: &EmailOpts<'_>,
 ) -> Result<()>
 where
   A: IntoIterator<Item = &'acc Account<'acc>>,
@@ -133,19 +153,12 @@ where
         "email error",
         format!("{err:?}").as_bytes(),
         recipients.clone(),
-        transfer_encoding,
+        opts,
       )
       .await;
     }
 
-    let result = try_send_email(
-      account,
-      subject,
-      message,
-      recipients.clone(),
-      transfer_encoding,
-    )
-    .await;
+    let result = try_send_email(account, subject, message, recipients.clone(), opts).await;
     match result {
       Ok(()) => return Ok(()),
       Err(err) => {

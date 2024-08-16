@@ -27,6 +27,7 @@ use anyhow::Result;
 
 use maily::send_email;
 use maily::Account;
+use maily::EmailOpts;
 
 use serde_json::from_slice as from_json;
 
@@ -98,15 +99,12 @@ async fn run_impl(args: Args) -> Result<()> {
     .await
     .context("failed to apply filters to message")?;
   let subject = subject.as_deref().unwrap_or("");
+  let opts = EmailOpts {
+    transfer_encoding: transfer_encoding.as_deref(),
+    ..Default::default()
+  };
 
-  send_email(
-    accounts.iter(),
-    subject,
-    &message,
-    recipients.iter(),
-    transfer_encoding.as_deref(),
-  )
-  .await
+  send_email(accounts.iter(), subject, &message, recipients.iter(), &opts).await
 }
 
 
