@@ -17,6 +17,12 @@ pub(crate) struct Args {
   /// The subject to use for the email.
   #[clap(short, long)]
   pub subject: Option<String>,
+  /// The content type used for the email; defaults to 'text/plain' if
+  /// not provided.
+  ///
+  /// See https://www.iana.org/assignments/media-types/media-types.xhtml
+  #[clap(long)]
+  pub content_type: Option<String>,
   /// The path to the configuration file.
   #[clap(short, long)]
   pub config: Option<PathBuf>,

@@ -52,6 +52,7 @@ async fn try_send_email<R, S>(
   account: &Account<'_>,
   subject: &str,
   message: &[u8],
+  content_type: Option<&str>,
   recipients: R,
   opts: &EmailOpts<'_>,
 ) -> Result<()>
@@ -63,10 +64,17 @@ where
     .from
     .parse()
     .with_context(|| format!("failed to parse 'From' specification: `{}`", account.from))?;
+  let content_type = content_type
+    .map(|content_type| {
+      ContentType::parse(content_type)
+        .with_context(|| format!("failed to parse content type specification `{content_type}`"))
+    })
+    .transpose()?
+    .unwrap_or(ContentType::TEXT_PLAIN);
   let email = Message::builder()
     .from(from)
     .subject(subject)
-    .header(ContentType::TEXT_PLAIN);
+    .header(content_type);
 
   let EmailOpts {
     transfer_encoding,
@@ -128,6 +136,7 @@ pub async fn send_email<'acc, A, R, I, S>(
   accounts: A,
   subject: &str,
   message: &[u8],
+  content_type: Option<&str>,
   recipients: R,
   opts: &EmailOpts<'_>,
 ) -> Result<()>
@@ -152,13 +161,22 @@ where
         account,
         "email error",
         format!("{err:?}").as_bytes(),
+        None,
         recipients.clone(),
         opts,
       )
       .await;
     }
 
-    let result = try_send_email(account, subject, message, recipients.clone(), opts).await;
+    let result = try_send_email(
+      account,
+      subject,
+      message,
+      content_type,
+      recipients.clone(),
+      opts,
+    )
+    .await;
     match result {
       Ok(()) => return Ok(()),
       Err(err) => {

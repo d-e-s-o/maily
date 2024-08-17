@@ -55,6 +55,7 @@ async fn run_impl(args: Args) -> Result<()> {
   let Args {
     message,
     subject,
+    content_type,
     config,
   } = args;
 
@@ -104,7 +105,15 @@ async fn run_impl(args: Args) -> Result<()> {
     ..Default::default()
   };
 
-  send_email(accounts.iter(), subject, &message, recipients.iter(), &opts).await
+  send_email(
+    accounts.iter(),
+    subject,
+    &message,
+    content_type.as_deref(),
+    recipients.iter(),
+    &opts,
+  )
+  .await
 }
 
 
