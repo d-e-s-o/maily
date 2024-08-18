@@ -11,6 +11,7 @@
 mod config;
 mod rand;
 
+use std::str;
 use std::str::FromStr as _;
 
 use anyhow::anyhow;
@@ -20,6 +21,7 @@ use anyhow::Result;
 
 use lettre::message::header::ContentTransferEncoding;
 use lettre::message::header::ContentType;
+use lettre::message::MaybeString;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::AsyncSmtpTransport;
 use lettre::AsyncTransport;
@@ -103,10 +105,17 @@ where
     email = email.to(to);
   }
 
-  let email = email
-    .body(message.to_vec())
-    .context("failed to create email message")?;
+  // We always try to work with string. The reason being that `lettre`
+  // performs line ending conversion only when the data is passed in
+  // as a string, and some mailers reject emails with bare linefeed
+  // line endings.
+  let body = if let Ok(message) = str::from_utf8(message) {
+    MaybeString::String(message.to_string())
+  } else {
+    MaybeString::Binary(message.to_vec())
+  };
 
+  let email = email.body(body).context("failed to create email message")?;
   let creds = Credentials::new(account.user.to_string(), account.password.to_string());
 
   let mailer = match account.smtp_mode {
