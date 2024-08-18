@@ -14,6 +14,8 @@ mod util;
 
 use std::env::args_os;
 use std::ffi::OsString;
+use std::io;
+use std::io::IsTerminal as _;
 use std::path::PathBuf;
 
 use clap::Parser as _;
@@ -85,7 +87,11 @@ async fn run_impl(args: Args) -> Result<()> {
   let message = if let Some(message) = message {
     message.into_bytes()
   } else {
-    println!("Please enter message (terminate with Ctrl-D):");
+    // At this point tokio's stdin does not sport the `is_terminal`
+    // method so we have to go through std here.
+    if io::stdin().is_terminal() {
+      println!("Please enter message (terminate with Ctrl-D):");
+    }
 
     let mut data = Vec::new();
     let _count = stdin()
