@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::borrow::Cow;
+use std::path::PathBuf;
 
 use serde::de::Error;
 use serde::de::Unexpected;
@@ -16,6 +17,12 @@ pub(crate) struct Config {
   pub accounts: Vec<Account>,
   /// The list of (default) recipients to send each email to.
   pub recipients: Vec<String>,
+  /// PGP encrypt the email using the provided keybox file.
+  ///
+  /// The referenced keybox needs to contain public keys for all
+  /// provided recipients.
+  #[serde(alias = "pgp-keybox")]
+  pub pgp_keybox: Option<PathBuf>,
   /// The filters to use when sending an email.
   #[serde(default)]
   pub filters: Vec<Filter>,

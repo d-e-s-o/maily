@@ -20,27 +20,48 @@ env:
   RUSTFLAGS: '-C debuginfo=0'
 
 jobs:
-  test:
-    name: Build and test [${{ matrix.profile }}]
+  build:
+    name: Build [${{ matrix.profile }} ${{ matrix.args }}]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         rust: [stable]
         profile: [dev, release]
+        args: ["--workspace --all-targets"]
+        include:
+          - rust: stable
+            profile: dev
+            # Make sure to build *without* `--workspace` or feature
+            # unification may mean that `--no-default-features` goes
+            # without effect.
+            args: "--package=maily --no-default-features"
+          - rust: stable
+            profile: dev
+            args: "--package=maily --features=pgp"
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
-    - name: Build & test ${{ matrix.profile }}
+    - run: sudo apt-get install -y pkg-config nettle-dev
+    - name: Build
       run: |
-        cargo build --workspace --profile=${{ matrix.profile }} --all-targets
-        cargo test --workspace --profile=${{ matrix.profile }}
+        cargo build --profile=${{ matrix.profile }} ${{ matrix.args }}
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get install -y pkg-config nettle-dev
+      - name: Test
+        run: cargo test --workspace --all-features
   clippy:
     name: Lint with clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get install -y pkg-config nettle-dev
       - run: cargo clippy --no-deps --workspace --all-targets --all-features --tests -- -A unknown_lints -A deprecated -D warnings

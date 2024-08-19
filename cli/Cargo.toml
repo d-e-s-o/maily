@@ -21,7 +21,7 @@ clap = { version = "4.1.4", default-features = false, features = ["color", "deri
 clap_complete = { version = "4.1.4", default-features = false, optional = true }
 dirs = { version = "5.0", default-features = false }
 futures = { version = "0.3", default-features = false, features = ["std"] }
-maily = { version = "0.0", path = "../", default-features = false }
+maily = { version = "0.0", path = "../", default-features = false, features = ["pgp"] }
 serde = { version = "1.0", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 tokio = { version = "1.0", default-features = false, features = ["fs", "io-std", "io-util", "macros", "process", "rt"] }
