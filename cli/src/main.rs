@@ -76,7 +76,6 @@ async fn run_impl(args: Args) -> Result<()> {
     recipients,
     pgp_keybox,
     filters,
-    transfer_encoding,
   } = config;
 
   ensure!(
@@ -109,7 +108,6 @@ async fn run_impl(args: Args) -> Result<()> {
   let subject = subject.as_deref().unwrap_or("");
   let opts = EmailOpts {
     pgp_keybox: pgp_keybox.as_deref(),
-    transfer_encoding: transfer_encoding.as_deref(),
     ..Default::default()
   };
 

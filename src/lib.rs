@@ -18,15 +18,12 @@ mod rand;
 use std::marker::PhantomData;
 use std::path::Path;
 use std::str;
-use std::str::FromStr as _;
 
-use anyhow::anyhow;
 use anyhow::Context as _;
 use anyhow::Error;
 use anyhow::Result;
 
 use lettre::message::header::ContentDisposition;
-use lettre::message::header::ContentTransferEncoding;
 use lettre::message::header::ContentType;
 use lettre::message::MaybeString;
 use lettre::message::MultiPart;
@@ -59,12 +56,6 @@ pub struct EmailOpts<'input> {
   #[cfg(feature = "pgp")]
   #[cfg_attr(docsrs, doc(cfg(feature = "pgp")))]
   pub pgp_keybox: Option<&'input Path>,
-  /// The transfer encoding to use.
-  ///
-  /// This setting is mostly provided as an escape hatch of sorts. If
-  /// not provided, the library detects a suitable transfer encoding
-  /// itself.
-  pub transfer_encoding: Option<&'input str>,
   /// The type is non-exhaustive and open to extension.
   #[doc(hidden)]
   pub _phantom: PhantomData<&'input ()>,
@@ -104,30 +95,16 @@ where
     })
     .transpose()?
     .unwrap_or(ContentType::TEXT_PLAIN);
-  let email = Message::builder().from(from).subject(subject);
+  let mut email = Message::builder().from(from).subject(subject);
 
   let EmailOpts {
     #[cfg(feature = "pgp")]
     pgp_keybox,
-    transfer_encoding,
     _phantom: PhantomData,
   } = opts;
 
   #[cfg(not(feature = "pgp"))]
   let pgp_keybox = None;
-
-  // We only set the transfer encoding if the user provided one. The
-  // reason being that:
-  // > The `Message` builder takes care of choosing the most
-  // > efficient encoding based on the chosen body, so in most
-  // > use-caches this header shouldn't be set manually.
-  let mut email = if let Some(transfer_encoding) = transfer_encoding {
-    let transfer_encoding = ContentTransferEncoding::from_str(transfer_encoding)
-      .map_err(|_| anyhow!("failed to parse transfer encoding `{transfer_encoding}`"))?;
-    email.header(transfer_encoding)
-  } else {
-    email
-  };
 
   for recipient in recipients.clone() {
     let recipient = recipient.as_ref();
