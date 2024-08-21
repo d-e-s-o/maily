@@ -119,15 +119,15 @@ where
 
   let mailer = match account.smtp_mode {
     SmtpMode::Unencrypted => {
-      AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(account.smtp_host)
+      AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(account.smtp_host.to_string())
         .credentials(creds)
         .build()
     },
-    SmtpMode::Tls => AsyncSmtpTransport::<Tokio1Executor>::relay(account.smtp_host)
+    SmtpMode::Tls => AsyncSmtpTransport::<Tokio1Executor>::relay(&account.smtp_host)
       .context("failed to create TLS SMTP mailer")?
       .credentials(creds)
       .build(),
-    SmtpMode::StartTls => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(account.smtp_host)
+    SmtpMode::StartTls => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&account.smtp_host)
       .context("failed to create STARTTLS SMTP mailer")?
       .credentials(creds)
       .build(),

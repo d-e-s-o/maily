@@ -1,6 +1,8 @@
 // Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use std::borrow::Cow;
+
 
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
@@ -15,16 +17,16 @@ pub enum SmtpMode {
 
 
 /// A type representing a single email account.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Account<'input> {
   /// The hostname of the SMTP server.
-  pub smtp_host: &'input str,
+  pub smtp_host: Cow<'input, str>,
   /// The SMTP "mode" to use.
   pub smtp_mode: SmtpMode,
   /// The "From" identifier to use.
-  pub from: &'input str,
+  pub from: Cow<'input, str>,
   /// The user to log in as.
-  pub user: &'input str,
+  pub user: Cow<'input, str>,
   /// The password to use for logging in.
-  pub password: &'input str,
+  pub password: Cow<'input, str>,
 }
