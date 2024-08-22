@@ -15,6 +15,8 @@ mod config;
 mod pgp;
 mod rand;
 
+#[cfg(feature = "pgp")]
+use std::borrow::Cow;
 use std::marker::PhantomData;
 use std::path::Path;
 use std::str;
@@ -55,7 +57,7 @@ pub struct EmailOpts<'input> {
   /// 'deso@posteo.net' > keybox.gpg`, for example.
   #[cfg(feature = "pgp")]
   #[cfg_attr(docsrs, doc(cfg(feature = "pgp")))]
-  pub pgp_keybox: Option<&'input Path>,
+  pub pgp_keybox: Option<Cow<'input, Path>>,
   /// The type is non-exhaustive and open to extension.
   #[doc(hidden)]
   pub _phantom: PhantomData<&'input ()>,
