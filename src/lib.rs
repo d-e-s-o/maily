@@ -36,7 +36,16 @@ use lettre::AsyncTransport;
 use lettre::Message;
 use lettre::Tokio1Executor;
 
+#[cfg(feature = "config")]
+#[cfg_attr(docsrs, doc(cfg(feature = "config")))]
+pub use crate::config::system_config;
+#[cfg(feature = "config")]
+#[cfg_attr(docsrs, doc(cfg(feature = "config")))]
+pub use crate::config::system_config_path;
 pub use crate::config::Account;
+#[cfg(feature = "config")]
+#[cfg_attr(docsrs, doc(cfg(feature = "config")))]
+pub use crate::config::Config;
 pub use crate::config::SmtpMode;
 
 #[cfg(feature = "pgp")]

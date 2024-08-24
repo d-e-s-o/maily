@@ -38,7 +38,13 @@ jobs:
             args: "--package=maily --no-default-features"
           - rust: stable
             profile: dev
+            args: "--package=maily --features=config"
+          - rust: stable
+            profile: dev
             args: "--package=maily --features=pgp"
+          - rust: stable
+            profile: dev
+            args: "--package=maily --features=config,pgp"
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@master
