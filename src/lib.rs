@@ -10,6 +10,20 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+//! This library provides infrastructure for easy and quick sending of
+//! emails. It comes with built-in redundancy by allowing the
+//! configuration of multiple SMTP accounts, one of which will be chosen
+//! at random. If sending fails, another one if picked and the operation
+//! retried, until one succeeded or all failed sending.
+//!
+//! If the `pgp` feature is enabled, emails can be PGP encrypted to the
+//! given set of recipients.
+//!
+//! With the `config` feature enable, the library honors a global
+//! system-wide configuration. This configuration can capture anything
+//! from SMTP account to default recipients and means that clients of
+//! this crate don't *have to* specify anything but message contents.
+
 mod config;
 #[cfg(feature = "pgp")]
 mod pgp;
@@ -206,6 +220,15 @@ where
   Ok(())
 }
 
+
+/// Send an email using the provided inputs.
+///
+/// This function attempts to send an email using one of the accounts
+/// provided. Accounts are chosen at random and on send failure another
+/// one is tried until one succeeded or all failed sending. In addition,
+/// in case of a send failure attempts are made to inform recipients
+/// about that via an additional email outlining the error encountered
+/// with a different account.
 pub async fn send_email<'acc, A, R, I, S>(
   accounts: A,
   subject: &str,

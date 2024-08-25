@@ -71,3 +71,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: sudo apt-get install -y pkg-config nettle-dev
       - run: cargo clippy --no-deps --workspace --all-targets --all-features --tests -- -A unknown_lints -A deprecated -D warnings
+  rustdoc:
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: '-D warnings -D rustdoc::broken_intra_doc_links'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo doc --no-deps
