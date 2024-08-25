@@ -12,24 +12,20 @@ mod args;
 mod config;
 mod util;
 
+use std::borrow::Cow;
 use std::env::args_os;
 use std::ffi::OsString;
 use std::io;
 use std::io::IsTerminal as _;
-use std::path::PathBuf;
 
 use clap::Parser as _;
 
-use dirs::config_dir;
-
-use anyhow::anyhow;
 use anyhow::ensure;
 use anyhow::Context as _;
 use anyhow::Result;
 
 use maily::send_email;
-use maily::Account;
-use maily::EmailOpts;
+use maily::system_config_path;
 
 use serde_json::from_slice as from_json;
 
@@ -43,16 +39,6 @@ use crate::config::Filter;
 use crate::util::pipeline;
 
 
-/// Retrieve the path to the program's configuration.
-fn config_path() -> Result<PathBuf> {
-  let path = config_dir()
-    .ok_or_else(|| anyhow!("unable to determine config directory"))?
-    .join("mail-message")
-    .join("config.json");
-  Ok(path)
-}
-
-
 async fn run_impl(args: Args) -> Result<()> {
   let Args {
     message,
@@ -62,24 +48,19 @@ async fn run_impl(args: Args) -> Result<()> {
   } = args;
 
   let path = if let Some(config) = config {
-    config
+    Cow::Owned(config)
   } else {
-    config_path()?
+    system_config_path()?
   };
   let data = read(&path)
     .await
     .with_context(|| format!("failed to read configuration file `{}`", path.display()))?;
   let config = from_json::<Config>(&data)
     .with_context(|| format!("failed to parse `{}` contents as JSON", path.display()))?;
-  let Config {
-    accounts,
-    recipients,
-    pgp_keybox,
-    filters,
-  } = config;
+  let Config { maily, filters } = config;
 
   ensure!(
-    !accounts.is_empty(),
+    !maily.accounts.is_empty(),
     "no email accounts configured in `{}`",
     path.display()
   );
@@ -101,15 +82,11 @@ async fn run_impl(args: Args) -> Result<()> {
     data
   };
 
-  let accounts = accounts.iter().map(Account::from).collect::<Vec<_>>();
   let message = pipeline(&message, filters.into_iter().map(Filter::into))
     .await
     .context("failed to apply filters to message")?;
   let subject = subject.as_deref().unwrap_or("");
-  let opts = EmailOpts {
-    pgp_keybox: pgp_keybox.as_deref(),
-    ..Default::default()
-  };
+  let (accounts, recipients, opts) = maily.into_inputs();
 
   send_email(
     accounts.iter(),
