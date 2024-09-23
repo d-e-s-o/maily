@@ -2,6 +2,22 @@
 name = "mail-message"
 version = "0.1.0"
 edition = "2021"
+categories = [
+  "asynchronous",
+  "command-line-utilities",
+  "email",
+]
+keywords = [
+  "async",
+  "cli",
+  "email",
+  "smtp",
+  "text",
+]
+description = """
+A program for easy, quick, and fault tolerant sending of emails from the
+command line.
+"""
 default-run = "mail-message"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,7 +36,7 @@ anyhow = { version = "1.0.80", default-features = false, features = ["std"] }
 clap = { version = "4.1.4", default-features = false, features = ["color", "derive", "error-context", "help", "std", "suggestions", "usage"] }
 clap_complete = { version = "4.1.4", default-features = false, optional = true }
 futures = { version = "0.3", default-features = false, features = ["std"] }
-maily = { version = "0.0", path = "../", default-features = false, features = ["config", "pgp"] }
+maily = { version = "0.2", path = "../", default-features = false, features = ["config", "pgp"] }
 serde = { version = "1.0", default-features = false, features = ["derive", "std"] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 tokio = { version = "1.0", default-features = false, features = ["fs", "io-std", "io-util", "macros", "process", "rt"] }

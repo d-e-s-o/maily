@@ -6,28 +6,25 @@ members = [
 
 [package]
 name = "maily"
-version = "0.0.0"
+version = "0.2.0"
 authors = ["Daniel Mueller <deso@posteo.net>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
-homepage = "https://github.com/d-e-s-o/mail-message"
-repository = "https://github.com/d-e-s-o/mail-message.git"
+homepage = "https://github.com/d-e-s-o/maily"
+repository = "https://github.com/d-e-s-o/maily.git"
 readme = "README.md"
 categories = [
   "asynchronous",
-  "command-line-utilities",
   "email",
 ]
 keywords = [
   "async",
-  "cli",
   "email",
   "smtp",
   "text",
 ]
 description = """
-A program for easy, quick, and fault tolerant sending of emails from the
-command line.
+A library for easy, quick, and fault tolerant sending of emails.
 """
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
