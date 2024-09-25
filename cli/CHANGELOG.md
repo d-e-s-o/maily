@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.2.0
+-----
 - Added support for PGP encrypting emails
 - Switched to honoring system-wide instead of per-use configuration by
   default

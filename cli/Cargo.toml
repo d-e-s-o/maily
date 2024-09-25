@@ -1,7 +1,11 @@
 [package]
 name = "mail-message"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
+license = "GPL-3.0-or-later"
+homepage = "https://github.com/d-e-s-o/maily"
+repository = "https://github.com/d-e-s-o/maily.git"
+readme = "README.md"
 categories = [
   "asynchronous",
   "command-line-utilities",
