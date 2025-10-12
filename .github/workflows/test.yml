@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
+# Copyright (C) 2024-2025 Daniel Mueller <deso@posteo.net>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 name: Test
@@ -53,7 +53,7 @@ jobs:
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
-    - run: sudo apt-get install -y pkg-config nettle-dev
+    - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
     - name: Build
       run: |
         cargo build --profile=${{ matrix.profile }} ${{ matrix.args }}
@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: sudo apt-get install -y pkg-config nettle-dev
+      - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - name: Test
         run: cargo test --workspace --all-features
   clippy:
@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: sudo apt-get install -y pkg-config nettle-dev
+      - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - run: cargo clippy --no-deps --workspace --all-targets --all-features --tests -- -A unknown_lints -A deprecated -D warnings
   rustdoc:
     name: Generate documentation

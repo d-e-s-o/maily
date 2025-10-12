@@ -37,7 +37,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - run: sudo apt-get install -y pkg-config nettle-dev
+    - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
     - name: Create git tag
       env:
         version: ${{ needs.version.outputs.version }}
@@ -47,7 +47,7 @@ jobs:
           --request POST \
           --url https://api.github.com/repos/${{ github.repository }}/releases \
           --header "Accept: application/vnd.github+json" \
-          --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
+          --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           --header "X-GitHub-Api-Version: 2022-11-28" \
           --data "{
               \"tag_name\":\"cli-v${version}\",
