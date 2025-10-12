@@ -81,5 +81,6 @@ jobs:
       RUSTDOCFLAGS: '-D warnings -D rustdoc::broken_intra_doc_links'
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo doc --no-deps
+      - run: cargo doc --workspace --no-deps --document-private-items
