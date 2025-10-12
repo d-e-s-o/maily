@@ -24,7 +24,7 @@ use sequoia_openpgp::serialize::stream::Recipient;
 use sequoia_openpgp::types::KeyFlags;
 use sequoia_openpgp::Cert;
 
-fn parse_keybox(keybox: &Path) -> Result<Certs> {
+fn parse_keybox(keybox: &Path) -> Result<Certs<'_>> {
   let keyring = Certs::empty();
   let f = File::open(keybox)
     .with_context(|| format!("failed to open keyring file `{}`", keybox.display()))?;

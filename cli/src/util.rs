@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2024-2025 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::borrow::Cow;
@@ -79,7 +79,7 @@ where
   Ok(())
 }
 
-pub async fn pipeline<I, E, C, A, S>(input: &[u8], commands: I) -> Result<Cow<[u8]>>
+pub async fn pipeline<I, E, C, A, S>(input: &[u8], commands: I) -> Result<Cow<'_, [u8]>>
 where
   I: IntoIterator<IntoIter = E>,
   E: ExactSizeIterator<Item = (C, A)>,
