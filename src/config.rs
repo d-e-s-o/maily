@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2024-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::borrow::Cow;
@@ -47,6 +47,7 @@ mod implementation {
 
   use std::marker::PhantomData;
   use std::path::Path;
+  #[cfg(feature = "pgp")]
   use std::path::PathBuf;
 
   use anyhow::Context as _;
