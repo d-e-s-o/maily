@@ -49,7 +49,7 @@ jobs:
             profile: dev
             args: "--package=maily --features=config,pgp,tracing"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
@@ -61,7 +61,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - name: Test
@@ -70,7 +70,7 @@ jobs:
     name: Lint with clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - run: cargo clippy --no-deps --workspace --all-targets --all-features --tests -- -A unknown_lints -A deprecated
@@ -80,7 +80,7 @@ jobs:
     env:
       RUSTDOCFLAGS: '-D warnings -D rustdoc::broken_intra_doc_links'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get install --yes --no-install-recommends pkg-config nettle-dev
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo doc --workspace --no-deps --document-private-items
