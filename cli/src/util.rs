@@ -1,4 +1,4 @@
-// Copyright (C) 2024-2025 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2024-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use std::borrow::Cow;
@@ -195,7 +195,7 @@ mod tests {
   #[test]
   async fn command_chaining() {
     let input = b"foobar";
-    #[allow(clippy::useless_conversion)]
+    #[expect(clippy::useless_conversion)]
     let output = pipeline(input, <[(&OsStr, [&OsStr; 0]); 0]>::from([]))
       .await
       .unwrap();
@@ -257,7 +257,7 @@ mod tests {
   #[test]
   async fn excessive_data_pipeline() {
     let input = (0..8 * 1024 * 1024).map(|_| b'x').collect::<Vec<_>>();
-    #[allow(clippy::useless_conversion)]
+    #[expect(clippy::useless_conversion)]
     let output = pipeline(&input, <[(_, [&OsStr; 0]); 1]>::from([("cat", [])]))
       .await
       .unwrap();

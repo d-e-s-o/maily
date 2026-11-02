@@ -1,12 +1,8 @@
-// Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2024-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#![allow(
-  clippy::collapsible_if,
-  clippy::fn_to_numeric_cast,
-  clippy::let_and_return,
-  clippy::let_unit_value
-)]
+//! A program for easy, quick, and fault tolerant sending of emails from
+//! the command line.
 
 mod args;
 mod config;
@@ -19,6 +15,7 @@ use std::ffi::OsString;
 use std::io;
 use std::io::IsTerminal as _;
 
+use clap::error::ErrorKind;
 use clap::Parser as _;
 
 use anyhow::ensure;
@@ -144,8 +141,8 @@ where
   let args = match Args::try_parse_from(args) {
     Ok(args) => args,
     Err(err) => match err.kind() {
-      clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
-        print!("{}", err);
+      ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => {
+        print!("{err}");
         return Ok(())
       },
       _ => return Err(err.into()),

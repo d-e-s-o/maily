@@ -1,13 +1,6 @@
-// Copyright (C) 2024 Daniel Mueller <deso@posteo.net>
+// Copyright (C) 2024-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#![allow(
-  clippy::collapsible_else_if,
-  clippy::collapsible_if,
-  clippy::fn_to_numeric_cast,
-  clippy::let_and_return,
-  clippy::let_unit_value
-)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! This library provides infrastructure for easy and quick sending of
@@ -70,7 +63,7 @@ use crate::rand::Rng;
 
 #[cfg(feature = "tracing")]
 #[macro_use]
-#[allow(unused_imports)]
+#[expect(unused_imports)]
 mod log {
   pub(crate) use tracing::debug;
   pub(crate) use tracing::error;
@@ -82,7 +75,7 @@ mod log {
 
 #[cfg(not(feature = "tracing"))]
 #[macro_use]
-#[allow(unused_imports)]
+#[expect(unused_imports)]
 mod log {
   macro_rules! debug {
     ($($args:tt)*) => {};

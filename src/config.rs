@@ -7,6 +7,7 @@ use std::borrow::Cow;
 use serde::Deserialize;
 
 
+/// The SMTP mode to work with.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "config", derive(Deserialize))]
 #[non_exhaustive]

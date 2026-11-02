@@ -1,6 +1,8 @@
 // Copyright (C) 2024-2026 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+//! Build script for `mail-message`.
+
 use std::env;
 
 use grev::git_revision;
