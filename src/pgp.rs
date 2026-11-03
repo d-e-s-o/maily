@@ -12,12 +12,11 @@ use sequoia_cert_store::store::UserIDQueryParams;
 use sequoia_cert_store::Store as _;
 use sequoia_cert_store::StoreUpdate as _;
 use sequoia_openpgp::armor::Kind;
-use sequoia_openpgp::cert::amalgamation::ValidAmalgamation as _;
 use sequoia_openpgp::cert::raw::RawCertParser;
 use sequoia_openpgp::parse::Parse as _;
 use sequoia_openpgp::policy::StandardPolicy;
 use sequoia_openpgp::serialize::stream::Armorer;
-use sequoia_openpgp::serialize::stream::Encryptor2 as Encryptor;
+use sequoia_openpgp::serialize::stream::Encryptor;
 use sequoia_openpgp::serialize::stream::LiteralWriter;
 use sequoia_openpgp::serialize::stream::Message;
 use sequoia_openpgp::serialize::stream::Recipient;
@@ -87,16 +86,15 @@ where
   let mut recipient_subkeys = Vec::<Recipient>::new();
   for cert in certs.iter() {
     let mut count = 0;
-    for key in cert
+    for key_amalgamation in cert
       .keys()
       .with_policy(&policy, None)
       .alive()
       .revoked(false)
       .key_flags(&mode)
       .supported()
-      .map(|ka| ka.key())
     {
-      recipient_subkeys.push(key.into());
+      recipient_subkeys.push(key_amalgamation.into());
       count += 1;
     }
 
